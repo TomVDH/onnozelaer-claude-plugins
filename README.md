@@ -7,7 +7,6 @@ Personal collection of Claude Code plugins by Tom Vanderheyden.
 | Plugin | Version | Description |
 |--------|---------|-------------|
 | [cabinet-of-imd](./cabinet-of-imd) | 1.8.0 | The Cabinet of IMD Agents — a crew of 8 specialized web development agents with gated handoffs, scope management, and team dynamics. |
-| [bash-tui-toolkit](./bash-tui-toolkit) | 1.0.0 | Skill for generating polished Bash TUI scripts with consistent component patterns, colour palettes, and architecture. |
 
 ## Structure
 
@@ -21,10 +20,6 @@ Personal collection of Claude Code plugins by Tom Vanderheyden.
 │   ├── examples/           # Templates and samples
 │   ├── CHANGELOG.md
 │   └── README.md
-├── bash-tui-toolkit/       # Plugin: Bash TUI Toolkit
-│   ├── references/         # Architecture, components, palette
-│   └── SKILL.md
-├── bash-tui-toolkit-workspace/  # Eval workspace for bash-tui-toolkit
 └── README.md               # This file
 ```
 
