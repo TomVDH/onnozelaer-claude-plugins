@@ -7,7 +7,7 @@ description: >
   writes it back to re-anchor state. Use when Tom asks "where are we",
   "status", "what's the state", or similar mid-session check-ins.
   Also serves as a recalibration tool after context compaction.
-version: 1.8.0
+version: 1.9.0
 ---
 
 # Cabinet Status
@@ -85,7 +85,7 @@ Vault: CLI — dedicated "Claude Cabinet"
   Last write: 12 minutes ago
 ```
 
-**Chatter & memories:** Approximate chatter message count, whether the nudge has been used, fun questions asked this session. Render as: 'Quiet backstage' if message count < 5, 'The crew's been chatty' if 5-15, 'Very active backstage — {count}+ messages' if 16+.
+**Chatter & memories:** Approximate chatter message count, whether the nudge has been used, fun questions asked this session. Render as: 'Quiet backstage' if message count < 5, 'The crew's been chatty' if 5-15, 'Very active backstage — {count}+ messages' if 16+. Also display in-chat noise level: `Noise: quiet` / `Noise: normal` / `Noise: full noise` (from `anchor.chatter.level`, default: normal).
 
 ### 5. Write the Anchor Back
 

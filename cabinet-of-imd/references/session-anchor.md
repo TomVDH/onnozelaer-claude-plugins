@@ -21,8 +21,8 @@ All covert cabinet files live in the `crew-notes/` subdirectory inside the proje
 
 ```json
 {
-  "version": "1.8.0",
-  "plugin_version": "1.8.0",
+  "version": "1.9.0",
+  "plugin_version": "1.9.0",
   "session_id": "2026-03-15T14:32:00Z",
   "project_name": "Dashboard v2",
   "codename": "Duvel",
@@ -79,7 +79,8 @@ All covert cabinet files live in the `crew-notes/` subdirectory inside the proje
 
   "chatter": {
     "nudge_used": false,
-    "message_count_approx": 24
+    "message_count_approx": 24,
+    "level": "normal"
   },
 
   "git": {
@@ -105,7 +106,8 @@ All covert cabinet files live in the `crew-notes/` subdirectory inside the proje
       "Prefers httpOnly cookies over localStorage for auth tokens (2026-03-22)"
     ],
     "lessons_logged": [],
-    "last_write_at": "2026-03-22T15:10:00Z"
+    "last_write_at": "2026-03-22T15:10:00Z",
+    "chroniclers_pushed": []
   }
 }
 ```
@@ -114,6 +116,7 @@ All covert cabinet files live in the `crew-notes/` subdirectory inside the proje
 
 - `energy.temperature`: `"good"` | `"tired"` | `"grinding"` | `"in_the_zone"` | `"frustrated"`
 - `energy.momentum`: `"productive"` | `"stalled"` | `"cruising"` | `"sprinting"`
+- `chatter.level`: `"quiet"` | `"normal"` | `"full noise"` — in-chat output verbosity. Set at step 4.5 of boot / step 7.5 of resume. HTML chatter log is always full regardless of this value.
 
 - `dissent[].status`: `"open"` | `"resolved"` | `"overruled"` (overruled = Tom acknowledged and chose differently)
 - `vault.mode`: `"cli"` | `"filesystem"` | `null` (null = no vault connected). Transport mode — how the cabinet talks to the vault.
@@ -126,6 +129,7 @@ All covert cabinet files live in the `crew-notes/` subdirectory inside the proje
 - `vault.lessons_logged`: array of lesson titles logged this session
 - `vault.last_write_at`: ISO timestamp of the most recent vault write (any type)
 - `vault.brief_loaded`, `vault.preferences_loaded`, `vault.lessons_loaded`: booleans tracking what was read from vault at boot
+- `vault.chroniclers_pushed`: array of decision keys (e.g. `"auth-strategy-2026-03-26"`) for which a Chroniclers push has already fired this session — prevents duplicate pushes per decision
 
 All other fields are self-documenting from the schema example above. The `vault` block is entirely optional — omit it if no vault is connected.
 
@@ -141,6 +145,7 @@ The anchor is updated silently — **never mentioned to the user** — at these 
 6. **Git event** — after commits, branch operations, or version tags
 7. **Fun question** — after a scrapbook question is asked, update memories counters
 8. **Nudge fired** — set `chatter.nudge_used` to true
+8a. **Chatter level set** — after step 4.5 (boot) or step 7.5 (resume), write `chatter.level`
 9. **Vault decision write** — after a decision is written to the vault at a gate, append the slug to `vault.decisions_written` and update `vault.last_write_at`
 10. **Vault preference capture** — after a preference is appended to `crew/preferences.md`, append the preference string to `vault.preferences_captured` and update `vault.last_write_at`
 11. **Vault lesson log** — after a lesson is appended to `crew/lessons-learned.md`, append the title to `vault.lessons_logged` and update `vault.last_write_at`

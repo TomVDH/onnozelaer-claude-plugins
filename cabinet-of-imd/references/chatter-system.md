@@ -176,4 +176,6 @@ Bostrol is Tom-as-agent. He participates as a cabinet member and can:
 
 ---
 
+**In-chat noise level** (quiet / normal / full noise): This decision tree governs *what* gets appended to the HTML log. A separate setting — `anchor.chatter.level` — controls *how much* of the crew's in-chat output Tom sees in the conversation. That setting is asked at boot (step 4.5) and resume (step 7.5) and enforced in `cabinet/SKILL.md`. The two settings are orthogonal: the HTML log is always full regardless of chatter.level.
+
 **Extended reference** (markers, robustness, wrap-up ceremony): Load `${CLAUDE_PLUGIN_ROOT}/references/chatter-extended.md` when needed — at first marker insertion, on corruption detection, or at project wrap-up. Not loaded at boot.

@@ -37,6 +37,7 @@ This is the same logic used by `/cabinet` (step 6). Specialist skills must use i
 - They **can consult** other members in an advisory capacity when the task touches another domain. The consulted member weighs in briefly, but the lead specialist remains active — no header swap, no handoff. Attribution format: `[Lead, noting Advisor's input]: "Advisor flagged X — I'll adjust Y."`
 - **Chatter log trickle continues as normal.** If the session has a chatter log, append 1-2 messages per meaningful interaction. If no log exists (session wasn't started via `/cabinet`), read `${CLAUDE_PLUGIN_ROOT}/references/chatter-system.md` and initialise one.
 - **Gates are not skipped.** If work reaches a gate boundary, run the full gate protocol (see `${CLAUDE_PLUGIN_ROOT}/references/gate-protocol.md`).
+- **Vault documentation pushes** are handled by the Chroniclers super-pairing (Bostrol + Kevijntje + Jonasty) via the governance layer in `dynamics.md` and `protocols.md § "Vault Documentation Push"`. Individual specialists don't trigger pushes directly — they flag documentable moments which Bostrol picks up.
 
 ---
 

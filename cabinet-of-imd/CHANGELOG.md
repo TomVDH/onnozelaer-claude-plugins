@@ -2,6 +2,24 @@
 
 All notable changes to the Cabinet of IMD plugin.
 
+## [1.9.0] — 2026-03-26
+
+### Added
+- **Chatter level selection at boot and resume** — Kevijntje now asks Tom how loud he wants the crew before each session (step 4.5 in `/cabinet`, step 7.5 in `/cabinet-resume`). Three options: Quiet (gates and alarms only), Normal (standard cadence), Full Noise (full banter + extra tangential cross-talk). Choice is informed by time of day, day of week, and vault context (last session temperature, days since last session). HTML chatter log remains always verbose regardless of setting. Response stored in `anchor.chatter.level`.
+- **"The Chroniclers" super pairing** (`dynamics.md`) — Bostrol + Kevijntje + Jonasty formally named as a documentation power trio. Distinct from "The Ship" (release prep): The Chroniclers fire during and after work whenever something vault-documentable occurs. Three voices, one goal: nothing important leaves the session undocumented.
+- **Vault Documentation Push protocol** (`protocols.md`) — full mechanics for The Chroniclers' aggressive push: what triggers it (decisions, API schemas, hard-won lessons, visual states, preferences, handoff points), how each member speaks, cadence rules to prevent spam, and a final wrap-up audit where Bostrol lists undocumented items before the session closes. Vault write ownership split: Bostrol writes narrative, Jonasty owns schema/spec blocks, Kevijntje confirms scope tagging.
+- **CLI-First Policy** (`vault-integration.md`) — explicit principle: the Obsidian CLI is the unconditional preference for all vault operations when available, not just a transport option. Lists concrete reasons: native wikilink parsing, property writes without YAML re-parse, automatic link updates on move/rename, live graph queries, no fragile regex. Extends beyond vault ops — the crew favours canonical CLI tools across all domains.
+- **`chatter.level` field in session anchor** — new enum field `"quiet"` | `"normal"` | `"full noise"` added to the `chatter` block. Write trigger 8a added (set at step 4.5 / step 7.5).
+- **`vault-images.md` reference** — Playwright screenshot-to-vault pattern: capture viewport screenshots into `projects/{slug}/images/` and embed with `![[wikilinks]]` in session notes. Preserves visual state for cross-session handoffs. First used DutchBC PoC 2026-03-26.
+
+### Changed
+- `cabinet/SKILL.md` bumped to 1.9.0.
+- `cabinet-resume/SKILL.md` bumped to 1.9.0.
+- `session-anchor.md` schema version bumped to 1.9.0.
+- Plugin version bumped to 1.9.0.
+
+---
+
 ## [1.8.0] — 2026-03-25
 
 ### Added

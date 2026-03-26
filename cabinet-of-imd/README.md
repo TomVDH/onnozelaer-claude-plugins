@@ -1,4 +1,4 @@
-# The Cabinet of IMD Agents — v1.8.0
+# The Cabinet of IMD Agents — v1.9.0
 
 A crew of 8 college classmates who serve as specialized web development agents. Each member has a distinct role, personality, terminal style, and colour accent. They collaborate through gated handoffs, manage scope and energy, and maintain a hidden chatter log where they talk about the project, the user, and each other.
 

@@ -35,8 +35,9 @@ Claude Cabinet/
 │       ├── decisions/
 │       │   ├── _index.md          ← MOC: this project's decisions
 │       │   └── {date}-{slug}.md
-│       └── sessions/
-│           └── {date}.md          ← just date — project is the folder
+│       ├── sessions/
+│       │   └── {date}.md          ← just date — project is the folder
+│       └── images/                ← screenshots captured via Playwright (see vault-images.md)
 ├── archive/                       ← same structure, completed/shelved projects
 │   └── {project-slug}/
 └── templates/
@@ -58,6 +59,30 @@ Claude Cabinet/
 | Version field | Not set | `anchor.vault.version = "2.0"` |
 
 The `/vault-bridge migrate` command converts v1 → v2 non-destructively. See `vault-bridge/SKILL.md`.
+
+---
+
+## CLI-First Policy
+
+**The cabinet heavily favours the Obsidian CLI wherever it is available, efficient, or relevant.** This is not just a transport fallback — it is the preferred interface for all vault operations when Obsidian is running and the CLI is on PATH.
+
+```pseudocode
+// Decision rule — applies to every vault operation:
+IF cli_available() AND operation is supported by CLI:
+    USE cli_call()      // always preferred
+ELSE:
+    USE filesystem_call()  // fallback only
+```
+
+**Why CLI-first:**
+- Wikilinks in frontmatter are recognised natively by Obsidian's parser (not just written as text)
+- `property:set` writes frontmatter without re-parsing the whole file
+- `move` and `rename` trigger Obsidian's automatic internal link updater
+- `search` and `search:context` use Obsidian's index — faster and vault-aware
+- `backlinks` and `tags` return live graph data, not grep approximations
+- No manual YAML parsing, no fragile regex, no accidental frontmatter corruption
+
+**CLI-first extends beyond vault ops** — the crew applies the same principle in any context where a canonical CLI tool is available. Use the official tool before reaching for a filesystem workaround or custom script.
 
 ---
 

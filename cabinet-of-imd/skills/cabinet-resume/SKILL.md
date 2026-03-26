@@ -7,7 +7,7 @@ description: >
   "pick up where we left off", "continue the project", "back to work on X",
   or invokes /cabinet on a project the anchor already knows about from a
   previous day.
-version: 1.0.0
+version: 1.9.0
 ---
 
 # Cabinet Resume
@@ -171,6 +171,43 @@ IF recent_decisions loaded:
 - 1-2 others react — keep it tight, no filler
 - Same banned openers as cold boot (§ cabinet/SKILL.md Step 4) apply here
 
+### 7.5. Chatter Level
+
+After the resume chatter, Kevijntje asks Tom how loud he wants the crew — same as `/cabinet` step 4.5, but shorter in tone since context is already established.
+
+**The HTML chatter log is always verbose regardless of this setting.**
+
+```pseudocode
+hour = CURRENT_HOUR()
+days_gap = today - anchor_date
+
+// Recommend from context
+IF hour < 9 OR hour >= 22:
+    recommended = "quiet"
+ELIF vault_available AND anchor.vault.last_temperature IN ["frustrated", "grinding"]:
+    recommended = "quiet"
+ELIF days_gap >= 7:
+    recommended = "normal"   // been a while — ease back in
+ELSE:
+    recommended = "normal"
+```
+
+Kevijntje offers all three options, briefly — this is a resume, not a fresh boot, so he keeps it tight:
+
+```
+// Example — resuming after a few days:
+[Kevijntje]: "Good to be back. Noise level — quiet, normal, or full noise?"
+
+// Example — late-night resume:
+[Kevijntje]: "Late one. Quiet, normal, or are we going full crew?"
+
+// Example — vault shows last session was frustrated:
+[Kevijntje]: "Last one was rough. Quiet might be the call — but you pick.
+              Quiet / Normal / Full noise."
+```
+
+AWAIT Tom's response and store in anchor exactly as per `/cabinet` step 4.5.
+
 ### 8. Update Anchor for New Session
 
 ```pseudocode
@@ -178,8 +215,8 @@ IF recent_decisions loaded:
 anchor.session_id = NOW()  // new timestamp
 anchor.status = "active"
 // Keep: project_name, active_specialist, active_task, scope, gates,
-//       parking_lot, dissent, vault config
-// Reset: session-specific counters
+//       parking_lot, dissent, vault config, chatter.level (re-asked at step 7.5)
+// Reset: session-specific counters only
 anchor.chatter.message_count_approx = 0
 anchor.chatter.nudge_used = false
 anchor.energy.break_count = 0
