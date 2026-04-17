@@ -23,6 +23,12 @@
       "version": "0.1.0",
       "source": "./iteration-shelf",
       "description": "Terminal-aesthetic review boards for in-browser design iteration. Generates a curated shelf and a monster index from a JSON manifest — self-contained HTML, zero build step, on-demand iframe loading, sidebar outliner, and a warn-gate that keeps the browser from stalling on 100+ iterations. Explicit invocation only. Integrates with Superpowers and the Cabinet plugin."
+    },
+    {
+      "name": "bash-tui-toolkit",
+      "version": "0.1.0",
+      "source": "./bash-tui-toolkit",
+      "description": "Build polished, interactive bash CLI tools with rich terminal UI — menus, tables, loading bars, spinners, splash screens, transitions, and animated effects. Makes shell scripts look crafted, not cobbled."
     }
   ]
 }
