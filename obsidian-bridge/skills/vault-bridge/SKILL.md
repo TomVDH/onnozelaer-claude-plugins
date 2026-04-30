@@ -372,3 +372,238 @@ IF subcommand == "print" AND template_name provided:
     content = read path
     REPORT: content
 ```
+
+### archive — Move project to archive/
+
+```pseudocode
+slug = user-provided slug OR read project_slug from breadcrumb
+vault_path = read vault_path from breadcrumb
+
+IF NOT exists {vault_path}/projects/{slug}/:
+    ERROR "Project '{slug}' not found in projects/."
+
+// Update brief status
+vault.property_set("projects/{slug}/brief.md", "status", "archived")
+vault.property_set("projects/{slug}/brief.md", "updated", TODAY)
+
+// Move the folder
+vault.move("projects/{slug}", "archive/{slug}")
+
+// Rebuild indices
+REBUILD projects/_index.md
+RUN update_home()
+
+// If current breadcrumb points to this slug, clear it
+IF breadcrumb project_slug == slug:
+    UPDATE breadcrumb: project_slug=
+
+REPORT: "Project '{slug}' archived."
+```
+
+### unarchive — Restore project from archive/
+
+```pseudocode
+slug = user-provided slug
+vault_path = read vault_path from breadcrumb
+
+IF NOT exists {vault_path}/archive/{slug}/:
+    ERROR "Project '{slug}' not found in archive/."
+
+// Update brief status
+vault.property_set("archive/{slug}/brief.md", "status", "active")
+vault.property_set("archive/{slug}/brief.md", "updated", TODAY)
+
+// Move back
+vault.move("archive/{slug}", "projects/{slug}")
+
+// Rebuild indices
+REBUILD projects/_index.md
+RUN update_home()
+
+REPORT: "Project '{slug}' restored to active."
+```
+
+### reindex — Rebuild all `_index.md` files from disk
+
+```pseudocode
+vault_path = read vault_path from breadcrumb
+
+// 1. Rebuild projects/_index.md
+projects = list dirs in {vault_path}/projects/
+FOR each project:
+    read brief frontmatter (slug, status, project_type, created, updated)
+    count decisions, sessions
+    find latest session date
+WRITE projects/_index.md with table rows
+
+// 2. Rebuild per-project collection indices
+FOR each project dir:
+    FOR each subfolder that is a collection (has ≥2 .md siblings, not sessions/images/assets/):
+        IF _index.md missing:
+            CREATE from collection-index template
+        REBUILD _index.md entries from folder contents
+            sort chronologically if filenames have dates, else alphabetically
+
+// 3. Rebuild iterations/_index.md (if exists)
+FOR each project with iterations/:
+    group iterations by track (from frontmatter)
+    sort by date within track
+    WRITE iterations/_index.md with track grouping and status badges
+
+// 4. Rebuild Home.md
+RUN update_home()
+
+// 5. Report
+REPORT: "Reindexed {N} projects, rebuilt {M} _index.md files."
+```
+
+### set-type — Change project type post-hoc
+
+```pseudocode
+slug = user-provided slug
+new_type = validate_type(user-provided type)
+vault_path = read vault_path from breadcrumb
+
+brief_path = "projects/{slug}/brief.md"
+IF NOT vault.exists(brief_path): ERROR "Project '{slug}' not found."
+
+old_type = vault.property_read(brief_path, "project_type")
+
+// Update frontmatter
+vault.property_set(brief_path, "project_type", new_type)
+vault.property_set(brief_path, "updated", TODAY)
+
+// Update tags: remove old type tag, add new
+// Read tags, replace type/{old_type} with type/{new_type}
+tags = vault.property_read(brief_path, "tags")
+tags = replace "type/{old_type}" with "type/{new_type}" in tags
+vault.property_set(brief_path, "tags", tags)
+
+// Scaffold new type-specific folders if missing
+MATCH new_type:
+    // Same logic as create-project folder scaffolding
+    // Only create folders that don't already exist
+    // Create _index.md for new collection folders
+
+REPORT: "Project '{slug}' type changed from {old_type} to {new_type}. New folders scaffolded if needed."
+```
+
+### housekeeping — Full consistency check
+
+Runs all structural checks from the housekeeping checklist. Auto-fixes safe items, reports manual items.
+
+```pseudocode
+vault_path = read vault_path from breadcrumb
+project_slug = read project_slug from breadcrumb
+
+// Scope: current project if linked, otherwise vault-wide
+IF project_slug:
+    scope = [project_slug]
+ELSE:
+    scope = list all project slugs
+
+auto_fixes = []
+manual_items = []
+
+FOR each slug in scope:
+    project_dir = {vault_path}/projects/{slug}
+
+    // 1. Empty project folder
+    IF project_dir has no .md files and no subfolders:
+        manual_items.add("Empty project folder: {slug} — archive or delete?")
+
+    // 2. Missing brief.md
+    IF NOT exists brief.md:
+        auto_fixes.add("Missing brief.md for {slug} — scaffold from template")
+        ACTION: scaffold brief from type template (ask type if unknown)
+
+    // 3. Slug shape violation
+    IF slug contains dots, spaces, or uppercase:
+        manual_items.add("Slug '{slug}' violates naming rules — rename with /vault-bridge?")
+
+    // 4. Collection folders missing _index.md
+    FOR each subfolder with ≥2 .md siblings (excluding sessions/, images/, assets/):
+        IF NOT exists _index.md:
+            auto_fixes.add("Missing _index.md in {slug}/{folder}")
+            ACTION: create from collection-index template
+
+    // 5. _index.md out of sync
+    FOR each _index.md:
+        expected_entries = list .md siblings
+        actual_entries = parse _index.md links
+        IF mismatch:
+            auto_fixes.add("_index.md out of sync in {slug}/{folder}")
+            ACTION: rebuild from disk
+
+    // 6. Files missing frontmatter
+    FOR each .md file (excluding .obsidian/, templates/):
+        IF no YAML frontmatter:
+            auto_fixes.add("Missing frontmatter: {file}")
+            ACTION: add minimal valid frontmatter based on location
+
+    // 7. Malformed/incomplete frontmatter
+    FOR each .md file with frontmatter:
+        IF missing required fields for its type:
+            auto_fixes.add("Incomplete frontmatter: {file} — missing {fields}")
+            ACTION: add missing required fields with defaults
+
+    // 8. Broken wikilinks
+    FOR each wikilink [[target]] in all files:
+        IF target not resolvable:
+            manual_items.add("Broken wikilink [[{target}]] in {file}")
+
+    // 9. Markdown-style links
+    FOR each [text](path) in vault files:
+        auto_fixes.add("Markdown link in {file} — convert to wikilink")
+        ACTION: replace with [[equivalent]]
+
+    // 10. Tag clutter
+    all_tags = collect all tags across scope
+    FOR tag with usage_count == 1:
+        manual_items.add("Single-use tag #{tag} in {file}")
+    FOR near-duplicates (e.g. #postgres vs #postgresql):
+        manual_items.add("Near-duplicate tags: #{a} vs #{b}")
+
+    // 11. Stale updated date
+    IF status == "active" AND updated > 90 days ago:
+        manual_items.add("Stale project '{slug}' — last updated {updated}")
+
+    // 12. Decision filename pattern
+    FOR each file in decisions/:
+        IF NOT matches YYYY-MM-DD-{kebab}.md:
+            auto_fixes.add("Decision filename violation: {file}")
+            ACTION: rename to correct pattern
+
+    // 13. Session filename pattern
+    FOR each file in sessions/:
+        IF NOT matches YYYY-MM-DD.md:
+            auto_fixes.add("Session filename violation: {file}")
+            ACTION: rename or merge same-day
+
+    // 14. Root docs missing type: doc
+    FOR each .md in project root (not brief.md, not _handoff.md, not _index.md):
+        IF NOT has type: doc in frontmatter:
+            auto_fixes.add("Root doc missing type: doc — {file}")
+            ACTION: add type: doc frontmatter
+
+    // 15. Brief body missing required blocks for type
+    project_type = read from brief frontmatter
+    required_blocks = get_required_blocks(project_type)
+    existing_blocks = parse ## headers from brief body
+    FOR each missing block:
+        auto_fixes.add("Brief missing block: ## {block} for type {project_type}")
+        ACTION: add empty block with placeholder
+
+// Report
+REPORT:
+    "## Auto-fixable ({count})"
+    list auto_fixes
+    "[Fix all] [Pick] [Skip]"
+    ""
+    "## Needs decision ({count})"
+    list manual_items
+
+// If user chooses "Fix all": run all auto_fixes sequentially
+// If "Pick": present each, user approves/skips
+// If "Skip": done
+```
