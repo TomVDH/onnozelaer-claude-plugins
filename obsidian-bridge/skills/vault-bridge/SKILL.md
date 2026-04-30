@@ -607,3 +607,203 @@ REPORT:
 // If "Pick": present each, user approves/skips
 // If "Skip": done
 ```
+
+---
+
+## Iteration Commands
+
+Iterations are a first-class collection type. Canonical folder: `projects/{slug}/iterations/`. Opt-in for all project types — not auto-created on `create-project`. See `references/vault-standards.md` for the iteration schema.
+
+### add-iteration — Create iteration in current project
+
+```pseudocode
+identifier = user-provided id (letter, number, or short word)
+iter_slug = validate_slug(user-provided slug)
+track = optional --track flag
+with_folder = optional --with-folder flag
+
+vault_path = read vault_path from breadcrumb
+project_slug = read project_slug from breadcrumb
+IF NOT project_slug: ERROR "No project linked."
+
+iter_dir = {vault_path}/projects/{project_slug}/iterations
+
+// Create iterations/ folder if first iteration
+IF NOT exists iter_dir:
+    mkdir iter_dir
+    vault.write("projects/{project_slug}/iterations/_index.md",
+        iterations_index(project_slug))
+
+// Build filename
+date = TODAY
+filename = "{date}-iter-{identifier}-{iter_slug}"
+
+IF with_folder:
+    // Folder form
+    mkdir {iter_dir}/{filename}
+    vault.write("projects/{project_slug}/iterations/{filename}/_iteration.md",
+        iteration_template(project_slug, identifier, date, track))
+ELSE:
+    // File form
+    vault.write("projects/{project_slug}/iterations/{filename}.md",
+        iteration_template(project_slug, identifier, date, track))
+
+// Add ## ITERATIONS block to brief if not present
+brief_content = vault.read("projects/{project_slug}/brief.md")
+IF NOT contains "## ITERATIONS":
+    APPEND to brief before last section or at end:
+        "\n## ITERATIONS\n\nSee [[projects/{project_slug}/iterations/_index|iterations]].\n"
+
+// Rebuild iterations/_index.md
+REBUILD iterations/_index.md from disk (grouped by track, sorted by date)
+
+REPORT: "Iteration {identifier} created: {filename}"
+
+
+FUNCTION iteration_template(slug, identifier, date, track):
+    frontmatter = {
+        type: iteration,
+        project: "[[projects/{slug}/brief|{slug}]]",
+        identifier: identifier,
+        status: drafting,
+        date: date,
+        tags: [ob/iteration]
+    }
+    IF track:
+        frontmatter.track = track
+    RETURN: frontmatter + "\n# Iteration {identifier}\n"
+
+
+FUNCTION iterations_index(slug):
+    RETURN collection_index template with:
+        project: "[[projects/{slug}/brief|{slug}]]"
+        title: "Iterations — {slug}"
+        description: "Design and code iterations grouped by track."
+```
+
+### add-iteration-artefact — Promote .md to folder; add artefact
+
+```pseudocode
+iter_id = user-provided iteration identifier (matches identifier field)
+file = user-provided file path (absolute or relative to CWD)
+
+vault_path = read vault_path from breadcrumb
+project_slug = read project_slug from breadcrumb
+iter_dir = {vault_path}/projects/{project_slug}/iterations
+
+// Find the iteration by identifier
+found = null
+FOR each entry in iter_dir:
+    IF entry name contains "-iter-{iter_id}-":
+        found = entry
+        BREAK
+IF NOT found: ERROR "Iteration '{iter_id}' not found."
+
+// If file form (.md), promote to folder form
+IF found is a .md file:
+    folder_name = found without .md extension
+    mkdir {iter_dir}/{folder_name}
+    // Rename the .md to _iteration.md inside the new folder
+    vault.move("projects/{project_slug}/iterations/{found}",
+               "projects/{project_slug}/iterations/{folder_name}/_iteration.md")
+    found = folder_name  // now a folder
+
+// Copy artefact into iteration folder
+artefact_name = basename(file)
+cp {file} to {iter_dir}/{found}/{artefact_name}
+
+// Update frontmatter artefacts list
+iter_file = "projects/{project_slug}/iterations/{found}/_iteration.md"
+existing_artefacts = vault.property_read(iter_file, "artefacts") OR []
+existing_artefacts.add(artefact_name)
+vault.property_set(iter_file, "artefacts", existing_artefacts)
+
+// Rebuild _index.md
+REBUILD iterations/_index.md
+
+REPORT: "Artefact '{artefact_name}' added to iteration {iter_id}. Promoted to folder form."
+```
+
+### iterations — List iterations grouped by track
+
+```pseudocode
+slug = user-provided slug OR read project_slug from breadcrumb
+tree_flag = optional --tree flag
+vault_path = read vault_path from breadcrumb
+
+iter_dir = {vault_path}/projects/{slug}/iterations
+IF NOT exists iter_dir: REPORT "No iterations for project '{slug}'." RETURN
+
+// Collect all iterations
+iterations = []
+FOR each entry in iter_dir (excluding _index.md):
+    IF entry is .md file:
+        fm = read frontmatter
+    ELIF entry is folder with _iteration.md:
+        fm = read _iteration.md frontmatter
+    ELSE: SKIP
+
+    iterations.add({
+        identifier: fm.identifier,
+        status: fm.status,
+        date: fm.date,
+        track: fm.track OR "Loose",
+        register: fm.register,
+        supersedes: fm.supersedes,
+        builds_on: fm.builds_on,
+        filename: entry name
+    })
+
+// Group by track
+tracks = group iterations by track
+sort tracks by most recent iteration date (descending)
+
+FOR each track:
+    REPORT: "## Track: {track_name}"
+    FOR each iteration in track (sorted by date):
+        status_badge = iteration.status
+        REPORT: "  [{iteration.identifier}] {iteration.filename} — {status_badge}"
+        IF iteration.register:
+            REPORT: "      {iteration.register}"
+
+IF tree_flag:
+    // Show lineage tree
+    REPORT: "\n## Lineage"
+    FOR each iteration with supersedes or builds_on:
+        REPORT: "  {identifier} → supersedes {target}" or "  {identifier} ← builds on {ancestor}"
+```
+
+### iteration-set-status — Change iteration status
+
+```pseudocode
+iter_id = user-provided identifier
+new_status = validate(user-provided status)
+    // drafting | on-shelf | picked | parked | rejected | superseded
+
+vault_path = read vault_path from breadcrumb
+project_slug = read project_slug from breadcrumb
+iter_dir = {vault_path}/projects/{project_slug}/iterations
+
+// Find iteration
+iter_file = find iteration file by identifier (same logic as add-iteration-artefact)
+IF NOT found: ERROR "Iteration '{iter_id}' not found."
+
+// Set status
+vault.property_set(iter_file, "status", new_status)
+
+// If "picked": offer to mark same-track siblings as "superseded"
+IF new_status == "picked":
+    track = vault.property_read(iter_file, "track")
+    IF track:
+        siblings = find other iterations with same track AND status NOT IN [rejected, superseded]
+        IF siblings.length > 0:
+            ASK: "Mark {siblings.length} sibling(s) on track '{track}' as superseded?"
+            IF yes:
+                FOR each sibling:
+                    vault.property_set(sibling.file, "status", "superseded")
+
+// Rebuild _index.md
+REBUILD iterations/_index.md
+
+REPORT: "Iteration {iter_id} status set to {new_status}."
+```
