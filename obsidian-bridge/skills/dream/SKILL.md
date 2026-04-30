@@ -5,6 +5,8 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 version: 0.1.0
 ---
 
+> **Frontmatter audits** in passes 1 and 2 check files against the canonical schema in `obsidian-bridge:vault-standards`. Load that skill before flagging missing/malformed properties so violations are scored against the real spec, not an inferred one.
+
 `/dream` performs a deep analysis of vault data, surfacing issues that accumulate silently across sessions. This is not a status report — it's a diagnostic.
 
 ## Scope

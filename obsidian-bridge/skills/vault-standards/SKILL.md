@@ -1,3 +1,10 @@
+---
+name: vault-standards
+description: Use when writing or editing YAML frontmatter in an `obsidian-bridge` vault, or when the user references vault schema, `#ob/` tags, naming conventions, or wikilink rules.
+allowed-tools: Read, Glob, Grep
+version: 0.1.0
+---
+
 # Vault Standards
 
 Canonical frontmatter schemas, naming conventions, tag taxonomy, wikilink forms, and structural rules for the Obsidian vault. Single source of truth — all vault writes must conform. Templates in `examples/vault-templates/` mirror these definitions.

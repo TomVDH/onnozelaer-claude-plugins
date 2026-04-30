@@ -9,7 +9,7 @@ Bridge between Claude Code sessions and a persistent Obsidian vault. This skill 
 
 ## Vault Structure (v3)
 
-Full structure, frontmatter schemas, naming rules, wikilink conventions, and tag taxonomy are in `references/vault-standards.md`. Key paths:
+Full structure, frontmatter schemas, naming rules, wikilink conventions, and tag taxonomy are in the `obsidian-bridge:vault-standards` skill. Key paths:
 
 - `projects/{slug}/brief.md` — project brief (type-shaped by `project_type`)
 - `projects/{slug}/decisions/` — decision records
@@ -19,7 +19,7 @@ Full structure, frontmatter schemas, naming rules, wikilink conventions, and tag
 - `archive/{slug}/` — archived projects (same shape)
 - `Home.md` — auto-rebuilt vault home
 
-Subfolder defaults vary by project type (`coding`, `knowledge`, `plugin`, `tinkerage`) — see `vault-standards.md § Per-Type Project Subfolder Defaults`.
+Subfolder defaults vary by project type (`coding`, `knowledge`, `plugin`, `tinkerage`) — see `obsidian-bridge:vault-standards` § Per-Type Project Subfolder Defaults.
 
 ## Vault Primitives
 
@@ -612,7 +612,7 @@ REPORT:
 
 ## Iteration Commands
 
-Iterations are a first-class collection type. Canonical folder: `projects/{slug}/iterations/`. Opt-in for all project types — not auto-created on `create-project`. See `references/vault-standards.md` for the iteration schema.
+Iterations are a first-class collection type. Canonical folder: `projects/{slug}/iterations/`. Opt-in for all project types — not auto-created on `create-project`. See `obsidian-bridge:vault-standards` for the iteration schema.
 
 ### add-iteration — Create iteration in current project
 

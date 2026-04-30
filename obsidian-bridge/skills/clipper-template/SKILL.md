@@ -7,6 +7,8 @@ upstream_redistribution: "antigravity-awesome-skills (MIT + CC BY 4.0)"
 date_added: "2026-02-27"
 ---
 
+> **`obsidian-bridge` vault?** Clipped notes land as `type: source` (or `type: note`). Populate frontmatter per `obsidian-bridge:vault-standards § Source` — `project:` piped wikilink, `tags: [ob/source]`, ISO `created:` date.
+
 # Obsidian Web Clipper Template Creator
 
 This skill helps you create importable JSON templates for the Obsidian Web Clipper.

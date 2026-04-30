@@ -7,6 +7,8 @@ upstream_redistribution: "antigravity-awesome-skills (MIT + CC BY 4.0)"
 date_added: "2026-03-21"
 ---
 
+> **`obsidian-bridge` vault?** Note frontmatter referenced from base filters/formulas follows the canonical schema in `obsidian-bridge:vault-standards`. Use those property names (`type`, `project`, `status`, `tags` with `ob/{type}`, etc.) when designing filters and views.
+
 # Obsidian Bases Skill
 
 ## When to Use

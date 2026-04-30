@@ -7,6 +7,8 @@ upstream_redistribution: "antigravity-awesome-skills (MIT + CC BY 4.0)"
 date_added: "2026-03-21"
 ---
 
+> **`obsidian-bridge` vault?** Frontmatter must follow the canonical schema in `obsidian-bridge:vault-standards` (`#ob/{type}` tags, piped wikilink `project:` fields, ISO dates, omit-don't-null). For diagrams in fenced `mermaid` blocks, defer to `obsidian-bridge:mermaid`. The generic property guidance below applies only when no plugin schema is in force.
+
 # Obsidian Flavored Markdown Skill
 
 Create and edit valid Obsidian Flavored Markdown. Obsidian extends CommonMark and GFM with wikilinks, embeds, callouts, properties, comments, and other syntax. This skill covers only Obsidian-specific extensions -- standard Markdown (headings, bold, italic, lists, quotes, code blocks, tables) is assumed knowledge.
