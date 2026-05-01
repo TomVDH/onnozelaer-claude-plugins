@@ -26,9 +26,9 @@
     },
     {
       "name": "gemin-eye",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "./gemin-eye",
-      "description": "Invoke Gemini as a review and coding partner from inside Claude Code. Vault-aware (pairs with vault-bridge). Sources primarily from Claude-provided context, generated Markdown, and existing docs \u2014 does not scaffold new project files unless explicitly authorised. Gemini-specific artefacts live under `gemin-eye/` subfolders in the vault or in `docs/`."
+      "description": "Invoke Gemini as a sandboxed review partner from inside Claude Code. Action-shaped subcommands (review, megareview, wip, sanity, name, compare, save). Every prompt follows a rigid ROLE / DO / DON'T / SCOPE / OUTPUT / CONTEXT template. Gemini reviews only \u2014 proposed edits return as elaborate code blocks; Claude applies them. Default model `gemini-3.5-flash`; `megareview` uses `gemini-3.5-pro`. Vault-aware (pairs with obsidian-bridge)."
     },
     {
       "name": "obsidian-bridge",
