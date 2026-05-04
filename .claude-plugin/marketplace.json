@@ -32,9 +32,9 @@
     },
     {
       "name": "obsidian-bridge",
-      "version": "0.1.0",
+      "version": "1.0.0",
       "source": "./obsidian-bridge",
-      "description": "Standalone Obsidian-vault primitive layer: canonical schema, type-shaped project layouts, /vault-bridge command, /dream cleanup, CLI-first writes with filesystem fallback. Pairs cleanly with the cabinet-of-imd plugin but functions on its own."
+      "description": "Operate an Obsidian vault from Claude — opinionated layout, frontmatter schema, content know-how (canvas, bases, mermaid), and cleanup workflows."
     }
   ]
 }
