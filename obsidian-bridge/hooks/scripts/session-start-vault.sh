@@ -7,6 +7,24 @@ main() {
   local project_dir="${CLAUDE_PROJECT_DIR:-}"
   [ -z "$project_dir" ] && return 0
 
+  # --- 0. Auto-migrate legacy anchor (.obsidian-bridge → .claude/obsidian-bridge) ---
+  local legacy_anchor="$project_dir/.obsidian-bridge"
+  local canonical_anchor="$project_dir/.claude/obsidian-bridge"
+  if [ -f "$legacy_anchor" ] && [ ! -f "$canonical_anchor" ]; then
+    mkdir -p "$project_dir/.claude" 2>/dev/null || true
+    if mv "$legacy_anchor" "$canonical_anchor" 2>/dev/null; then
+      # Rewrite .gitignore line if present
+      local gitignore="$project_dir/.gitignore"
+      if [ -f "$gitignore" ] && grep -qxF '.obsidian-bridge' "$gitignore"; then
+        # macOS sed needs '' after -i; GNU sed doesn't. Try both.
+        sed -i '' 's|^\.obsidian-bridge$|.claude/obsidian-bridge|' "$gitignore" 2>/dev/null \
+          || sed -i 's|^\.obsidian-bridge$|.claude/obsidian-bridge|' "$gitignore" 2>/dev/null \
+          || true
+      fi
+      printf '[obsidian-bridge] auto-migrated anchor → .claude/obsidian-bridge\n' >&2
+    fi
+  fi
+
   local vault_path="" vault_name="" project_slug="" mode="" linked_at=""
 
   # --- 1. Read breadcrumb ---
