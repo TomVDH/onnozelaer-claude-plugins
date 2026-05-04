@@ -16,12 +16,10 @@ main() {
       # Rewrite .gitignore line if present
       local gitignore="$project_dir/.gitignore"
       if [ -f "$gitignore" ] && grep -qxF '.obsidian-bridge' "$gitignore"; then
-        # macOS sed needs '' after -i; GNU sed doesn't. Try both.
-        sed -i '' 's|^\.obsidian-bridge$|.claude/obsidian-bridge|' "$gitignore" 2>/dev/null \
-          || sed -i 's|^\.obsidian-bridge$|.claude/obsidian-bridge|' "$gitignore" 2>/dev/null \
-          || true
+        # BSD sed requires the -i suffix arg; GNU sed also accepts this form — one command covers both.
+        sed -i '' 's|^\.obsidian-bridge$|.claude/obsidian-bridge|' "$gitignore" 2>/dev/null || true
       fi
-      printf '[obsidian-bridge] auto-migrated anchor → .claude/obsidian-bridge\n' >&2
+      printf '[obsidian-bridge] auto-migrated anchor → .claude/obsidian-bridge\n'
     fi
   fi
 
