@@ -4,7 +4,7 @@
       "matcher": "*",
       "hooks": [{
         "type": "command",
-        "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start-vault.sh",
+        "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start-vault.sh\"",
         "timeout": 10
       }]
     }],
@@ -12,7 +12,7 @@
       "matcher": "*",
       "hooks": [{
         "type": "command",
-        "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-end-handoff.sh",
+        "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-end-handoff.sh\"",
         "timeout": 5
       }]
     }],
@@ -20,7 +20,7 @@
       "matcher": "*",
       "hooks": [{
         "type": "command",
-        "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/user-prompt-vault-reminder.sh",
+        "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/user-prompt-vault-reminder.sh\"",
         "timeout": 3
       }]
     }],
@@ -28,7 +28,7 @@
       "matcher": "Write|Edit|MultiEdit",
       "hooks": [{
         "type": "command",
-        "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/postuse-vault-validator.py",
+        "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/postuse-vault-validator.py\"",
         "timeout": 5
       }]
     }],
@@ -36,7 +36,7 @@
       "matcher": "*",
       "hooks": [{
         "type": "command",
-        "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/precompact-handoff-sync.py",
+        "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/precompact-handoff-sync.py\"",
         "timeout": 5
       }]
     }]

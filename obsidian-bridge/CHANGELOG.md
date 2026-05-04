@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.1 — 2026-05-04
+
+Bug fix + content-style guide.
+
+**Fix:**
+- `hooks/hooks.json` — quoted `${CLAUDE_PLUGIN_ROOT}` in all 5 hook commands. Without quotes, hooks failed when the plugin path contained spaces (e.g. macOS installs under `~/Library/Application Support/...`). Symptom: `python3: can't open file '/Users/.../Library/Application'`.
+
+**vault-standards skill expanded:**
+- Doc schema clarified — explicit definition of what a doc IS (evergreen, singleton, no date in filename) plus common examples (`MANIFESTO.md`, `STACK.md`, `STYLE.md`, etc.).
+- New "Doc vs Decision — disambiguation" subsection — criteria table, the "When was this decided?" test, and worked examples. `/dream` will flag suspected mismatches.
+- New "Content style" section — voice/tense rules, structure rules, callout usage, words to delete, acceptance-test friendly principle, and reference body shapes per file type. Designed for both AI and human readers.
+
 ## 1.0.0 — 2026-05-04
 
 First stable release. Major surface redesign + skill expansion.
