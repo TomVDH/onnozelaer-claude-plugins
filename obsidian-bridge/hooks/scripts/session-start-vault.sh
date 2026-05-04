@@ -103,7 +103,7 @@ main() {
       ctx+="\nDecisions: \`projects/$project_slug/decisions/YYYY-MM-DD-{slug}.md\`\n"
       ctx+="Sessions: \`projects/$project_slug/sessions/YYYY-MM-DD.md\`\n"
     else
-      ctx+="- Project: not linked (run \`/vault-bridge link <slug>\` to set)\n"
+      ctx+="- Project: not linked (run \`/connect --link-only <slug>\` to set)\n"
     fi
 
     ctx+="Root docs require \`type: doc\` frontmatter.\n"
