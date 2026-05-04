@@ -9,16 +9,22 @@ Standalone plugin — works without any other plugins. Pairs cleanly with `cabin
 - **Type-shaped projects** — `coding`, `knowledge`, `plugin`, `tinkerage` — each with appropriate brief blocks and subfolder defaults.
 - **Vault primitives** — CLI-first Obsidian operations with filesystem fallback. Read, write, search, move, rename — abstracted behind `vault.*` calls.
 - **SessionStart hook** — discovers vault, injects context, steers toward vault connection when not linked.
-- **`/vault-bridge`** — create, connect, scaffold, sync, archive, reindex, housekeeping, iterations, migration.
-- **`/dream`** — two-pass cleanup. Pass 1: structural sanitation (auto-fixable). Pass 2: content analysis (report-only).
+- **7 verbs** — lifecycle (`/connect`, `/sync`, `/check`), cleanup (`/ramasse`, `/dream`), visual artefacts (`/draw`), state transitions (`/iterate`). Content creation moves to conversation.
 - **Remember integration** — mirror `.remember/remember.md` to vault as `_handoff.md`.
 
 ## Commands
 
-| Command | Description |
+| Verb | Purpose |
 |---|---|
-| `/vault-bridge` | Vault operations — create, connect, scaffold, sync, status, housekeeping, migrate |
-| `/dream` | Two-pass vault analysis — structural fixes + content review |
+| `/connect [path]` | Onboard: link this folder to an Obsidian vault (creates one if needed) |
+| `/sync` | Push current state to the vault (brief + handoff) |
+| `/check [section]` | Read-only summary; optional sections: `iterations`, `decisions`, `sessions`, `handoff`, `tags` |
+| `/draw <subverb>` | Visual artefacts — `canvas <name>` / `base <name>` / `diagram [type]` |
+| `/ramasse` | Tidy the vault — rebuild indexes, fix drift, normalise tags |
+| `/dream` | Deep diagnostic — surfaces structural and content issues |
+| `/iterate <id> <status>` | Set iteration status (`drafting`/`on-shelf`/`picked`/`parked`/`rejected`/`superseded`). May be sunset later |
+
+> Coming from the old `/vault-bridge ...` surface? See [`notes/2026-05-04-command-surface-redesign-migration.md`](notes/2026-05-04-command-surface-redesign-migration.md).
 
 ## Install
 
@@ -26,7 +32,7 @@ Add to your Claude Code plugins or install from the Onnozelaer marketplace.
 
 ## Vault schema version
 
-This plugin uses vault schema **v3**. Projects created with cabinet-of-imd v2 vaults can be migrated via `/vault-bridge migrate`.
+This plugin uses vault schema **v3**. Projects created with cabinet-of-imd v2 vaults can be migrated conversationally ("migrate this vault to v3").
 
 ## License
 

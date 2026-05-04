@@ -7,21 +7,27 @@ main() {
   local project_dir="${CLAUDE_PROJECT_DIR:-}"
   [ -z "$project_dir" ] && return 0
 
+  # --- 0. Auto-migrate legacy anchor (.obsidian-bridge → .claude/obsidian-bridge) ---
+  local legacy_anchor="$project_dir/.obsidian-bridge"
+  local canonical_anchor="$project_dir/.claude/obsidian-bridge"
+  if [ -f "$legacy_anchor" ] && [ ! -f "$canonical_anchor" ]; then
+    mkdir -p "$project_dir/.claude" 2>/dev/null || true
+    if mv "$legacy_anchor" "$canonical_anchor" 2>/dev/null; then
+      # Rewrite .gitignore line if present
+      local gitignore="$project_dir/.gitignore"
+      if [ -f "$gitignore" ] && grep -qxF '.obsidian-bridge' "$gitignore"; then
+        # BSD sed requires the -i suffix arg; GNU sed also accepts this form — one command covers both.
+        sed -i '' 's|^\.obsidian-bridge$|.claude/obsidian-bridge|' "$gitignore" 2>/dev/null || true
+      fi
+      printf '[obsidian-bridge] auto-migrated anchor → .claude/obsidian-bridge\n'
+    fi
+  fi
+
   local vault_path="" vault_name="" project_slug="" mode="" linked_at=""
 
-  # --- 1. Read breadcrumb ---
-  # Prefer .claude/obsidian-bridge (current convention); fall back to
-  # .obsidian-bridge at project root (legacy, pre-migration).
-  local breadcrumb=""
-  for candidate in \
-      "$project_dir/.claude/obsidian-bridge" \
-      "$project_dir/.obsidian-bridge"; do
-    if [ -f "$candidate" ]; then
-      breadcrumb="$candidate"
-      break
-    fi
-  done
-  if [ -n "$breadcrumb" ]; then
+  # --- 1. Read breadcrumb (canonical only — legacy auto-migrated in step 0) ---
+  local breadcrumb="$project_dir/.claude/obsidian-bridge"
+  if [ -f "$breadcrumb" ]; then
     vault_path=$(grep -E '^vault_path=' "$breadcrumb" 2>/dev/null | head -n1 | cut -d= -f2- || true)
     vault_name=$(grep -E '^vault_name=' "$breadcrumb" 2>/dev/null | head -n1 | cut -d= -f2- || true)
     project_slug=$(grep -E '^project_slug=' "$breadcrumb" 2>/dev/null | head -n1 | cut -d= -f2- || true)
@@ -97,7 +103,7 @@ main() {
       ctx+="\nDecisions: \`projects/$project_slug/decisions/YYYY-MM-DD-{slug}.md\`\n"
       ctx+="Sessions: \`projects/$project_slug/sessions/YYYY-MM-DD.md\`\n"
     else
-      ctx+="- Project: not linked (run \`/vault-bridge link <slug>\` to set)\n"
+      ctx+="- Project: not linked (run \`/connect --link-only <slug>\` to set)\n"
     fi
 
     ctx+="Root docs require \`type: doc\` frontmatter.\n"
@@ -108,7 +114,7 @@ main() {
     # Vault not linked — emit steering context
     printf '## Obsidian Bridge — Not Linked\n\n'
     printf 'No vault linked to this session. Before vault-dependent work, ask the user\n'
-    printf 'to run `/vault-bridge connect <path>` or `/vault-bridge create`. Do not\n'
+    printf 'to run `/connect <path>` (creates one if needed). Do not\n'
     printf 'fabricate vault paths or invent a layout.'
   fi
 

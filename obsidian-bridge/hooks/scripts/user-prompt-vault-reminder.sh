@@ -6,7 +6,7 @@
 # (which was noisy and ignored).
 #
 # Suppression rules (any one → silent exit):
-#   1. Anchor file exists at .claude/obsidian-bridge (or legacy .obsidian-bridge)
+#   1. Canonical anchor file exists at .claude/obsidian-bridge
 #   2. .cabinet-anchor-hint exists (cabinet plugin can resolve a vault)
 #   3. OB_DEFAULT_VAULT env var is set
 #   4. The user's prompt contains no vault-related keywords
@@ -22,10 +22,9 @@ main() {
   local project_dir="${CLAUDE_PROJECT_DIR:-}"
   [ -z "$project_dir" ] && return 0
 
-  # 1. Anchor file exists → vault is linked, no reminder needed
-  # Prefer .claude/obsidian-bridge; fall back to legacy .obsidian-bridge
+  # 1. Canonical anchor file exists → vault is linked, no reminder needed
+  # (Legacy .obsidian-bridge is auto-migrated by SessionStart hook step 0.)
   [ -f "$project_dir/.claude/obsidian-bridge" ] && return 0
-  [ -f "$project_dir/.obsidian-bridge" ] && return 0
 
   # 2. Cabinet anchor hint → vault discoverable via cabinet plugin
   [ -f "$project_dir/.cabinet-anchor-hint" ] && return 0
@@ -51,7 +50,7 @@ except Exception:
   # If we could not parse a prompt, fall back to the old "always fire"
   # behavior so we don't silently swallow the reminder when stdin is empty.
   if [ -z "$prompt" ]; then
-    printf 'No vault linked. Run /vault-bridge connect or /vault-bridge create before vault-dependent work.'
+    printf 'No vault linked. Run /connect before vault-dependent work.'
     return 0
   fi
 
@@ -59,7 +58,7 @@ except Exception:
   # Conservative regex — false positive = one harmless extra reminder.
   local pattern='vault|obsidian|frontmatter|wiki[ -]?link|/vault-bridge|/dream|#ob/|_handoff\.md|_index\.md|brief\.md|\.base\b'
   if printf '%s' "$prompt" | grep -qiE "$pattern"; then
-    printf 'No vault linked. Run /vault-bridge connect or /vault-bridge create before vault-dependent work.'
+    printf 'No vault linked. Run /connect before vault-dependent work.'
   fi
 }
 

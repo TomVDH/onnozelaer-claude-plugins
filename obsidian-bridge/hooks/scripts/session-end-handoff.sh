@@ -11,17 +11,9 @@ main() {
   local project_dir="${CLAUDE_PROJECT_DIR:-}"
   [ -z "$project_dir" ] && return 0
 
-  # Prefer .claude/obsidian-bridge; fall back to legacy .obsidian-bridge
-  local breadcrumb=""
-  for candidate in \
-      "$project_dir/.claude/obsidian-bridge" \
-      "$project_dir/.obsidian-bridge"; do
-    if [ -f "$candidate" ]; then
-      breadcrumb="$candidate"
-      break
-    fi
-  done
-  [ -z "$breadcrumb" ] && return 0
+  # Canonical anchor only — legacy auto-migrated by SessionStart step 0
+  local breadcrumb="$project_dir/.claude/obsidian-bridge"
+  [ -f "$breadcrumb" ] || return 0
 
   local vault_path="" project_slug=""
   vault_path=$(grep -E '^vault_path=' "$breadcrumb" 2>/dev/null | head -n1 | cut -d= -f2- || true)
@@ -43,10 +35,10 @@ main() {
     remember_mtime=$(stat -f %m "$remember_file" 2>/dev/null || stat -c %Y "$remember_file" 2>/dev/null || echo 0)
     handoff_mtime=$(stat -f %m "$handoff_file" 2>/dev/null || stat -c %Y "$handoff_file" 2>/dev/null || echo 0)
     if [ "$remember_mtime" -gt "$handoff_mtime" ]; then
-      printf 'remember.md updated since last handoff — run /vault-bridge handoff sync to mirror.'
+      printf 'remember.md updated since last handoff — run /sync handoff to mirror.'
     fi
   else
-    printf 'remember.md exists but no vault handoff yet — run /vault-bridge handoff sync to mirror.'
+    printf 'remember.md exists but no vault handoff yet — run /sync handoff to mirror.'
   fi
 
   return 0
