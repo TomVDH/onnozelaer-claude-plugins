@@ -23,6 +23,14 @@
         "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/user-prompt-vault-reminder.sh",
         "timeout": 3
       }]
+    }],
+    "PostToolUse": [{
+      "matcher": "Write|Edit|MultiEdit",
+      "hooks": [{
+        "type": "command",
+        "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/postuse-vault-validator.py",
+        "timeout": 5
+      }]
     }]
   }
 }
