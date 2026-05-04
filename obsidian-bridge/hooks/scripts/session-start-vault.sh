@@ -25,19 +25,9 @@ main() {
 
   local vault_path="" vault_name="" project_slug="" mode="" linked_at=""
 
-  # --- 1. Read breadcrumb ---
-  # Prefer .claude/obsidian-bridge (current convention); fall back to
-  # .obsidian-bridge at project root (legacy, pre-migration).
-  local breadcrumb=""
-  for candidate in \
-      "$project_dir/.claude/obsidian-bridge" \
-      "$project_dir/.obsidian-bridge"; do
-    if [ -f "$candidate" ]; then
-      breadcrumb="$candidate"
-      break
-    fi
-  done
-  if [ -n "$breadcrumb" ]; then
+  # --- 1. Read breadcrumb (canonical only — legacy auto-migrated in step 0) ---
+  local breadcrumb="$project_dir/.claude/obsidian-bridge"
+  if [ -f "$breadcrumb" ]; then
     vault_path=$(grep -E '^vault_path=' "$breadcrumb" 2>/dev/null | head -n1 | cut -d= -f2- || true)
     vault_name=$(grep -E '^vault_name=' "$breadcrumb" 2>/dev/null | head -n1 | cut -d= -f2- || true)
     project_slug=$(grep -E '^project_slug=' "$breadcrumb" 2>/dev/null | head -n1 | cut -d= -f2- || true)
