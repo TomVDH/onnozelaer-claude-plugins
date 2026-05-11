@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.2.0 — 2026-05-11
+
+**Skill prose sharpening — heavy SKILL.md files slimmed via reference extraction.**
+
+Pure polish pass. No API change, no schema change, no command surface change. Internal reorganisation of two skills to keep the trigger-time payload tight while preserving all content.
+
+### Changed
+
+- **`skills/vault-bridge/SKILL.md`** — 1223 → 674 lines (45% reduction). Tightened prose intros, DRY'd the repeated breadcrumb-read boilerplate, kept all command pseudocode. Extracted:
+  - `references/CONVERSATIONAL_OPERATIONS.md` (245 lines) — `add-collection`, `archive`/`unarchive`, `set-type`, `templates`, `add-iteration`, `add-iteration-artefact`. These don't have slash commands and load on natural-language trigger; no need to ship them on every command dispatch.
+  - `references/MIGRATION_V2_V3.md` (166 lines) — full v2 → v3 walkthrough. Rare, opt-in, conversational.
+  - `references/HOUSEKEEPING_CHECKS.md` (64 lines) — the 16 housekeeping checks as a structured table, replacing the inline checklist in the `/ramasse housekeeping` flow.
+  - Skill version bumped to `0.2.0`.
+- **`skills/vault-standards/SKILL.md`** — 495 → 373 lines (25% reduction). Extracted:
+  - `references/CONTENT_STYLE.md` (141 lines) — voice/tense/structure/callouts/cuts/acceptance-test rules + reference body shapes. Style is judgment, not validation; loads on demand.
+- **`notes/`** — moved the three `2026-05-04-command-surface-redesign-*` docs to `notes/archive/`. They describe a redesign that's already shipped (v1.1.0); kept as historical record. `mermaid-house-style.md` stays in place.
+
+### Unchanged
+
+- `skills/bases/SKILL.md` — upstream redistribution (MIT + CC BY 4.0, kepano/obsidian-skills); structure preserved out of respect for the source.
+- All other skills, hooks, command files, templates, plugin description, and marketplace entry text.
+
 ## 1.1.1 — 2026-05-05
 
 **Decouple bridge from cabinet specifics.**
