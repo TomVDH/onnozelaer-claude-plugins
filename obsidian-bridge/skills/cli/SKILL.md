@@ -11,6 +11,8 @@ date_added: "2026-03-21"
 
 Use the `obsidian` CLI to interact with a running Obsidian instance. Requires Obsidian to be open.
 
+> **Bridge rule:** never invoke the `obsidian` CLI when Obsidian is closed. The CLI may wake the app to communicate with it. If Obsidian isn't already running (`pgrep -i obsidian` empty), stop and use filesystem operations instead, or ask the user to open Obsidian first. The bridge respects the user's run state — it does not open or close the app on the user's behalf.
+
 ## When to Use
 - Use when managing vault content through the Obsidian CLI.
 - Use when developing or debugging Obsidian plugins and themes from the command line.

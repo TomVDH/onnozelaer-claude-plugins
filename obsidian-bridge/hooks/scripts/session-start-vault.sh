@@ -67,13 +67,25 @@ main() {
   fi
 
   # --- 5. Detect CLI ---
+  # The bridge respects Obsidian's run state. We treat CLI as "available"
+  # only when both:
+  #   (a) the `obsidian` binary is on PATH, AND
+  #   (b) Obsidian is currently running.
+  # We deliberately do NOT call `obsidian version` here — that command
+  # can wake Obsidian if it's closed, which Tom doesn't want. If Obsidian
+  # is closed, we operate in filesystem mode and never touch the CLI.
   local cli_available="no"
   local cli_version=""
   if command -v obsidian >/dev/null 2>&1; then
-    cli_version=$(obsidian version 2>/dev/null || true)
-    if [ -n "$cli_version" ]; then
-      cli_available="yes"
-      mode="${mode:-cli}"
+    if pgrep -i obsidian >/dev/null 2>&1 \
+       || (command -v pgrep >/dev/null 2>&1 && pgrep -x Obsidian >/dev/null 2>&1) \
+       || ps -A 2>/dev/null | grep -qi "[O]bsidian"; then
+      # Obsidian is running — safe to ask the CLI for its version.
+      cli_version=$(obsidian version 2>/dev/null || true)
+      if [ -n "$cli_version" ]; then
+        cli_available="yes"
+        mode="${mode:-cli}"
+      fi
     fi
   fi
   mode="${mode:-filesystem}"

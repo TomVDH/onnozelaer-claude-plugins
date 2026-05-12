@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.2.1 — 2026-05-11
+
+**Fix: bridge no longer wakes Obsidian when it's closed.**
+
+Tom reported Obsidian opening and closing repeatedly during Claude sessions. Root cause: the bridge probed CLI availability by calling `obsidian version`, and the Obsidian CLI wakes the app to communicate with it. Every probe and every subsequent vault op was relaunching Obsidian.
+
+### Fixed
+
+- **`hooks/scripts/session-start-vault.sh`** — CLI detection now requires Obsidian to be currently running (`pgrep -i obsidian` or `ps -A | grep -i Obsidian`) before invoking `obsidian version`. If Obsidian is closed, `cli_available=no` and `mode=filesystem`; the CLI is never touched.
+- **`references/vault-integration.md`** — `cli_available()` semantics updated: returns true only when binary is on PATH AND Obsidian is running. Hard rule added: never invoke the CLI as a probe when Obsidian is closed. Graceful-degradation note clarified — on mid-session CLI failure (user closed Obsidian), fall back to filesystem without retrying.
+- **`skills/cli/SKILL.md`** — added a bridge-rule preamble: never invoke the CLI when Obsidian is closed. If not running, use filesystem ops or ask the user to open Obsidian. The bridge does not open or close the app on the user's behalf.
+
+### Behaviour
+
+- Obsidian open at session start → `mode=cli` (fast vault ops via Obsidian's index).
+- Obsidian closed at session start → `mode=filesystem` (direct file ops, no CLI invocations, Obsidian stays closed).
+- User opens Obsidian mid-session → no auto-switch to CLI; next session picks it up.
+- User closes Obsidian mid-session → first failing CLI op transparently falls back to filesystem for the rest of the session.
+
 ## 1.2.0 — 2026-05-11
 
 **Skill prose sharpening — heavy SKILL.md files slimmed via reference extraction.**

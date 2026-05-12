@@ -21,15 +21,24 @@ Direct file access via Read/Write/Glob/Grep tools. Used when CLI is unavailable 
 
 ### Detection
 
+`cli_available()` is true when **both**:
+
+1. The `obsidian` binary is on `PATH`.
+2. **Obsidian is currently running** (process visible to `pgrep`/`ps`).
+
 ```bash
-command -v obsidian >/dev/null 2>&1 && obsidian version 2>/dev/null
+command -v obsidian >/dev/null 2>&1 \
+  && (pgrep -i obsidian >/dev/null 2>&1 || ps -A 2>/dev/null | grep -qi "[O]bsidian") \
+  && obsidian version 2>/dev/null
 ```
+
+**Hard rule: never invoke the `obsidian` CLI as a probe when Obsidian is closed.** The Obsidian CLI may wake the app to communicate with it. The bridge respects the user's run state — if Obsidian is closed, we use filesystem mode and leave the app alone. If the user wants CLI mode, they open Obsidian.
 
 Result stored in breadcrumb file as `mode=cli` or `mode=filesystem`. Re-detection on next SessionStart only.
 
 ### Graceful degradation
 
-If CLI was selected but a CLI op fails mid-session (e.g., Obsidian closed), attempt filesystem fallback transparently for that op, log once, continue.
+If CLI was selected at SessionStart but a CLI op fails mid-session (the user closed Obsidian), attempt filesystem fallback transparently for that op, log once, continue. **Do not** retry the CLI op — that would wake Obsidian again.
 
 ---
 
