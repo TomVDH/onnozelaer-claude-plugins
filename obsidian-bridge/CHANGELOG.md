@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.2.2 — 2026-05-11
+
+**Harden vault-link discoverability — stop reprompting across sessions and projects.**
+
+Three improvements so the "no vault linked" friction disappears once a project (or the user globally) is set up.
+
+### Added
+
+- **`CLAUDE.md` managed block** — `/connect` (and any breadcrumb-mutating op: `--link-only`, `create-project`, `set-type`, …) writes a managed block at the project root delimited by `<!-- begin obsidian-bridge -->` / `<!-- end obsidian-bridge -->`. The block lists vault, project, key paths, and a pointer to `vault-standards`. Claude Code auto-loads `CLAUDE.md` per session, so vault context now lives in native per-project memory — no SessionStart re-injection needed. Idempotent: rerunning `/connect` updates the block in place; everything outside the markers is left alone.
+- **`/connect --user-default <path>`** — writes `~/.claude/obsidian-bridge` (user-level breadcrumb). Every project without its own breadcrumb falls back to this. One-time setup, stops the not-linked reminder everywhere. Project-level breadcrumbs always override.
+- **Once-per-session reminder** — the `UserPromptSubmit` reminder drops a `.claude/.ob-reminded` sentinel after firing. Subsequent prompts in the same session skip the reminder. `SessionStart` clears the sentinel.
+- **`~/.claude/obsidian-bridge` in the discovery chain** — added as step 3 (between cabinet-anchor-hint and `OB_DEFAULT_VAULT`). Both the SessionStart hook and the prompt-reminder hook respect it. `project_slug` is deliberately never inherited from the user-level breadcrumb (project_slug is always project-scoped).
+
+### Changed
+
+- **Reminder hook keyword pattern updated** — now matches the new 7-verb command surface (`/connect`, `/sync`, `/check`, `/dream`, `/ramasse`, `/draw`, `/iterate`) instead of the retired `/vault-bridge`.
+- **`session-start-vault.sh`** — discovery chain renumbered to include user-level breadcrumb at step 3; old steps 3/4/5 shift by one.
+- **`commands/connect.md`** — usage table updated for `--user-default`; CLAUDE.md integration noted.
+- **`README.md`** — three new bullet points calling out CLAUDE.md integration, global default, once-per-session reminder.
+
+### Behaviour
+
+| Scenario | Before | Now |
+|---|---|---|
+| Project linked, vault keyword in prompt | No reminder | No reminder |
+| Project not linked, vault keyword in 5 prompts in one session | 5 reminders | 1 reminder |
+| Project not linked but `~/.claude/obsidian-bridge` exists | Reminder fires | No reminder |
+| Across sessions, project remains linked | Hook re-injects context | `CLAUDE.md` already carries the context; hook is redundant but harmless |
+
 ## 1.2.1 — 2026-05-11
 
 **Fix: bridge no longer wakes Obsidian when it's closed.**

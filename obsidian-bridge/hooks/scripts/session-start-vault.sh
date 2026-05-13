@@ -7,6 +7,12 @@ main() {
   local project_dir="${CLAUDE_PROJECT_DIR:-}"
   [ -z "$project_dir" ] && return 0
 
+  # --- Clear once-per-session reminder sentinel ---
+  # The UserPromptSubmit reminder drops a sentinel after firing to avoid
+  # repeating itself within the same session. Clearing it here means a
+  # fresh session starts with a clean slate.
+  rm -f "$project_dir/.claude/.ob-reminded" 2>/dev/null || true
+
   # --- 0. Auto-migrate legacy anchor (.obsidian-bridge → .claude/obsidian-bridge) ---
   local legacy_anchor="$project_dir/.obsidian-bridge"
   local canonical_anchor="$project_dir/.claude/obsidian-bridge"
@@ -43,13 +49,23 @@ main() {
     fi
   fi
 
-  # --- 3. Fallback: OB_DEFAULT_VAULT env var ---
+  # --- 3. Fallback: user-level default breadcrumb (~/.claude/obsidian-bridge) ---
+  if [ -z "$vault_path" ]; then
+    local user_breadcrumb="${HOME:-}/.claude/obsidian-bridge"
+    if [ -n "${HOME:-}" ] && [ -f "$user_breadcrumb" ]; then
+      vault_path=$(grep -E '^vault_path=' "$user_breadcrumb" 2>/dev/null | head -n1 | cut -d= -f2- || true)
+      vault_name=$(grep -E '^vault_name=' "$user_breadcrumb" 2>/dev/null | head -n1 | cut -d= -f2- || true)
+      # project_slug is project-scoped — never pulled from the user-level breadcrumb.
+    fi
+  fi
+
+  # --- 4. Fallback: OB_DEFAULT_VAULT env var ---
   if [ -z "$vault_path" ] && [ -n "${OB_DEFAULT_VAULT:-}" ]; then
     vault_path="$OB_DEFAULT_VAULT"
     vault_name=$(basename "$vault_path")
   fi
 
-  # --- 4. Fallback: walk parent dirs for Home.md ---
+  # --- 5. Fallback: walk parent dirs for Home.md ---
   if [ -z "$vault_path" ]; then
     local check_dir="$project_dir"
     local depth=0
@@ -66,7 +82,7 @@ main() {
     done
   fi
 
-  # --- 5. Detect CLI ---
+  # --- 6. Detect CLI ---
   # The bridge respects Obsidian's run state. We treat CLI as "available"
   # only when both:
   #   (a) the `obsidian` binary is on PATH, AND
@@ -90,7 +106,7 @@ main() {
   fi
   mode="${mode:-filesystem}"
 
-  # --- 6. Read project type from brief if slug is known ---
+  # --- 7. Read project type from brief if slug is known ---
   local project_type="" project_status=""
   if [ -n "$vault_path" ] && [ -n "$project_slug" ]; then
     local brief="$vault_path/projects/$project_slug/brief.md"
@@ -100,7 +116,7 @@ main() {
     fi
   fi
 
-  # --- 7. Emit context ---
+  # --- 8. Emit context ---
   if [ -n "$vault_path" ] && [ -d "$vault_path" ]; then
     # Vault linked — emit rich context
     local ctx="## Obsidian Bridge\n\n"

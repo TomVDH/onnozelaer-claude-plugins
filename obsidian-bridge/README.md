@@ -8,8 +8,12 @@ Standalone plugin — works without any other plugins. Pairs cleanly with `cabin
 
 - **Type-shaped projects** — `coding`, `knowledge`, `plugin`, `tinkerage` — each with appropriate brief blocks and subfolder defaults.
 - **Vault primitives** — CLI-first Obsidian operations with filesystem fallback. Read, write, search, move, rename — abstracted behind `vault.*` calls.
+- **Respects Obsidian's run state** — only uses the CLI when Obsidian is already open; never opens or closes the app on your behalf (v1.2.1+).
 - **SessionStart hook** — discovers vault, injects context, steers toward vault connection when not linked.
 - **7 verbs** — lifecycle (`/connect`, `/sync`, `/check`), cleanup (`/ramasse`, `/dream`), visual artefacts (`/draw`), state transitions (`/iterate`). Content creation moves to conversation.
+- **`CLAUDE.md` integration (v1.2.2+)** — `/connect` writes a managed block to project-root `CLAUDE.md`, so vault context lives in Claude Code's native per-project memory.
+- **Global default vault (v1.2.2+)** — `/connect --user-default <path>` writes `~/.claude/obsidian-bridge`; every project without its own breadcrumb falls back to it. Stops the "no vault linked" reminder across projects.
+- **One-reminder-per-session (v1.2.2+)** — the not-linked reminder fires at most once per session, then suppresses for the rest of it.
 - **Remember integration** — mirror `.remember/remember.md` to vault as `_handoff.md`.
 
 ## Commands

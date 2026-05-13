@@ -8,12 +8,17 @@ Onboard the current project folder to an Obsidian vault. Single entry point — 
 ## Usage
 
 ```
-/connect                       Discover or prompt for a vault path
-/connect <path>                Connect to (or create) a vault at <path>
-/connect <path> <slug>         Connect AND link this folder to project <slug>
-/connect --new <path>          Force-create a new vault at <path> (error if non-empty)
-/connect --link-only <slug>    Just set the project slug; vault must already be connected
+/connect                          Discover or prompt for a vault path
+/connect <path>                   Connect to (or create) a vault at <path>
+/connect <path> <slug>            Connect AND link this folder to project <slug>
+/connect --new <path>             Force-create a new vault at <path> (error if non-empty)
+/connect --link-only <slug>       Just set the project slug; vault must already be connected
+/connect --user-default <path>    Set `~/.claude/obsidian-bridge` as a global default vault
 ```
+
+`--user-default` writes a user-level breadcrumb so every project without its own falls back to it — stops the "no vault linked" reminder globally. Project-level breadcrumbs always override.
+
+On any breadcrumb-mutating action above, the bridge also refreshes a managed block in `CLAUDE.md` at the project root (markers: `<!-- begin obsidian-bridge -->` … `<!-- end obsidian-bridge -->`) so Claude Code's native per-project memory carries the vault context across sessions.
 
 ## Inference rules
 

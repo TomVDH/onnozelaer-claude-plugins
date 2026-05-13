@@ -54,15 +54,77 @@ linked_at=YYYY-MM-DD
 mode=cli|filesystem
 ```
 
-**Read pattern (every op):** read canonical; if absent, fall back to
-legacy. If neither exists, project is "not linked." Wherever the
-pseudocode below says `read … from breadcrumb`, this is the pattern.
+**Discovery chain (in order, first hit wins):**
 
-**Write pattern:**
+1. `$CLAUDE_PROJECT_DIR/.claude/obsidian-bridge` — project-level breadcrumb.
+2. `$CLAUDE_PROJECT_DIR/.cabinet-anchor-hint` — cabinet plugin interop.
+3. `~/.claude/obsidian-bridge` — **user-level default**. Set once, applies everywhere a project hasn't overridden it. `project_slug` is never inherited from this file (always project-scoped).
+4. `$OB_DEFAULT_VAULT` env var — legacy global fallback.
+5. Walk parent dirs (≤5) for `Home.md` with `type: vault-home` or `cabinet-home`.
+
+**Read pattern (every op):** walk the chain, take the first hit.
+
+**Write pattern (project-level):**
 1. `mkdir -p $CLAUDE_PROJECT_DIR/.claude`
 2. Write `$CLAUDE_PROJECT_DIR/.claude/obsidian-bridge`
-3. Append `.claude/obsidian-bridge` to `.gitignore` if not present
-4. Legacy cleanup is handled by the SessionStart hook — not here.
+3. Append `.claude/obsidian-bridge` to `.gitignore` if not present.
+4. **Refresh `CLAUDE.md` managed block** (see below).
+5. Legacy cleanup is handled by the SessionStart hook — not here.
+
+**User-level default — explicit setup:**
+- `/connect --user-default <path>` writes `~/.claude/obsidian-bridge` instead of the project breadcrumb. After that, any project without its own breadcrumb falls back to it. Stops the "no vault linked" reminder across all projects.
+
+---
+
+## CLAUDE.md managed block
+
+For decent per-project memory, `/connect` (and `/sync`, `set-type`,
+any op that mutates breadcrumb state) **refreshes a managed block in
+`CLAUDE.md`** at the project root. This gives Claude Code's native
+per-project memory layer the vault context — no re-injection from
+hooks needed each session.
+
+### Marker format
+
+```markdown
+<!-- begin obsidian-bridge -->
+## Obsidian Bridge
+
+- **Vault:** `<vault_name>` at `<vault_path>` (mode: `<cli|filesystem>`)
+- **Project:** `<project_slug>` (type: `<project_type>`, status: `<status>`)
+- **Decisions:** `projects/<slug>/decisions/YYYY-MM-DD-{slug}.md`
+- **Sessions:** `projects/<slug>/sessions/YYYY-MM-DD.md`
+- **Standards:** invoke `obsidian-bridge:vault-standards` for the canonical schema.
+<!-- end obsidian-bridge -->
+```
+
+### Update algorithm
+
+```pseudocode
+FUNCTION refresh_claude_md(project_dir, breadcrumb):
+    claude_md = "{project_dir}/CLAUDE.md"
+    new_block = render_block(breadcrumb)        // BEGIN … content … END
+    existing  = read claude_md (empty if absent)
+
+    IF existing contains "<!-- begin obsidian-bridge -->":
+        // Replace in place — everything between markers, markers included
+        new_content = regex_replace(existing,
+                                    r'<!-- begin obsidian-bridge -->.*?<!-- end obsidian-bridge -->',
+                                    new_block,
+                                    dotall=True)
+    ELSE:
+        // Append at the end with a leading blank line
+        new_content = existing.rstrip() + "\n\n" + new_block + "\n"
+
+    write claude_md(new_content)
+```
+
+### Removal
+
+To unlink: delete `$CLAUDE_PROJECT_DIR/.claude/obsidian-bridge` and
+strip the managed block from `CLAUDE.md` (everything between the
+markers, inclusive). No `/unlink` command exists yet — manual edits
+are fine; the markers make the boundary unambiguous.
 
 ---
 
@@ -87,14 +149,16 @@ Inference rules:
 | `/connect <path> <slug>` | Connect AND link to project `<slug>` |
 | `/connect --new <path>` | Force-create (error if path is non-empty and not a vault) |
 | `/connect --link-only <slug>` | Set slug only; vault must already be connected |
+| `/connect --user-default <path>` | Set `~/.claude/obsidian-bridge` as a global default vault. Applies to every project that doesn't have its own breadcrumb. |
 
 ```pseudocode
 PARSE flags + positional args
 breadcrumb = read canonical anchor
 
 CASE invocation:
-  --link-only <slug>: → link subform
-  --new <path>:       → create subform (force)
+  --link-only <slug>:       → link subform
+  --new <path>:             → create subform (force)
+  --user-default <path>:    → user-default subform
   <path>:
     IF path doesn't exist:                                   → create
     ELIF path/Home.md exists with vault-home|cabinet-home:    → connect
@@ -105,6 +169,28 @@ CASE invocation:
   no args:
     IF breadcrumb exists: REPORT current vault + project (read-only summary)
     ELSE:                 PROMPT for vault path
+```
+
+### User-default subform — set the global vault fallback
+
+```pseudocode
+path = resolve(user-provided path)
+
+// Validate the path is a real vault (loose check — Home.md or projects/)
+IF NOT exists path: ERROR "Path does not exist: {path}"
+IF NOT (exists {path}/Home.md OR exists {path}/projects/):
+    ERROR "No vault detected at {path}. Expected Home.md or projects/ folder."
+
+mkdir -p "${HOME}/.claude"
+WRITE "${HOME}/.claude/obsidian-bridge":
+    vault_path={path}
+    vault_name={basename(path)}
+    linked_at={TODAY}
+    mode={cli IF cli_available() ELSE filesystem}
+
+// NOTE: project_slug is deliberately omitted — it's always project-scoped.
+
+REPORT: "User-level default vault set: {path}. Every project without its own breadcrumb will fall back to this. The 'no vault linked' reminder will no longer fire globally."
 ```
 
 ### Create subform — scaffold a new v3 vault
@@ -132,6 +218,8 @@ WRITE breadcrumb:
 
 IF .gitignore exists AND NOT contains ".claude/obsidian-bridge":
     APPEND ".claude/obsidian-bridge" to .gitignore
+
+refresh_claude_md(project_dir, breadcrumb)   // see § CLAUDE.md managed block
 
 REPORT: "Vault created at {base}. Transport: {mode}. Run /connect <path> <slug> to scaffold your first project."
 ```
@@ -171,7 +259,10 @@ WRITE breadcrumb:
 IF .gitignore exists AND NOT contains ".claude/obsidian-bridge":
     APPEND ".claude/obsidian-bridge" to .gitignore
 
-// 7. Cabinet detection
+// 7. Refresh CLAUDE.md managed block — see § CLAUDE.md managed block
+refresh_claude_md(project_dir, breadcrumb)
+
+// 8. Cabinet detection
 IF base/crew/ exists:
     REPORT: "Cabinet detected — crew/ folder present, untouched by bridge."
 
@@ -196,6 +287,8 @@ UPDATE breadcrumb: project_slug={slug}, linked_at={TODAY}
 
 project_type = read project_type from brief.md
 status       = read status from brief.md
+
+refresh_claude_md(project_dir, breadcrumb)   // see § CLAUDE.md managed block
 
 REPORT: "Linked to project '{slug}' (type: {project_type}, status: {status})."
 ```
@@ -252,6 +345,7 @@ RUN update_home()
 
 // 5. Breadcrumb update
 UPDATE breadcrumb: project_slug={slug}
+refresh_claude_md(project_dir, breadcrumb)   // see § CLAUDE.md managed block
 
 // 6. Codebase scaffold (if applicable)
 IF git root OR $CLAUDE_PROJECT_DIR is a code project:
